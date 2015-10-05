@@ -1,0 +1,23 @@
+{
+  "name": "upload.js",
+  "version": "0.0.1",
+  "authors": [
+    "Dmytro Sokil <dmytro.sokil@gmail.com>"
+  ],
+  "description": "JavaScript upload handler with easy ui customization.",
+  "main": "dist/upload.js",
+  "keywords": [
+    "upload",
+    "php",
+    "nginx"
+  ],
+  "license": "MIT",
+  "homepage": "http://github.com/sokil/upload.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
