@@ -1,59 +1,4 @@
 (function($) {
-
-    /**
-     * jQuery plugin
-     */
-    $.fn.uploader = function() {
-
-        var $element = $(this);
-
-        // init
-        if (arguments.length && typeof arguments[0] === 'object') {
-            // config
-            var options = $.extend({}, {
-                crossDomain: null,
-                transport: null, // set upload transport
-                progressHandlerUrl: null, // only for iframe
-                uploadHandlerUrl: null,
-                uploadHandlerParams: function() {},
-                classname: null,
-                onchoose: function() {},
-                onsuccess: function(response) {},
-                onerror: function(message) {},
-                oninvalidfile: function(code) {},
-                onbeforeupload: function() {},
-                onafterupload: function() {},
-                onprogress: function(loaded, total) {},
-                supportedFormats: [],
-                maxSize: null,
-                responseType: 'json',
-                fileInputName: $element.attr('name') || 'f',
-                autoUpload: true
-            }, arguments[0]);
-
-            // init
-            $element.data('selfInstance', new uploader($element, options));
-        }
-        // configure initialised
-        else {
-
-            // check if uploader initialised
-            var u = $element.data('selfInstance');
-            if (!u) {
-                throw new Error('Uploader not initialised');
-            }
-
-            // return uploader object
-            if (!arguments.length) {
-                return u;
-            }
-
-            // call Uploader method
-            u[arguments[0]].apply(u, Array.prototype.slice.call(arguments, 1));
-        }
-
-    };
-
     /**
      * Constructor
      */
@@ -410,7 +355,69 @@
 
             return url;
         }
+    };
+
+    /**
+     * jQuery plugin
+     */
+    $.fn.uploader = function() {
+
+        var $element = $(this);
+
+        // init
+        if (arguments.length && typeof arguments[0] === 'object') {
+            // config
+            var options = $.extend({}, {
+                crossDomain: null,
+                transport: null, // set upload transport
+                progressHandlerUrl: null, // only for iframe
+                uploadHandlerUrl: null,
+                uploadHandlerParams: function() {},
+                classname: null,
+                onchoose: function() {},
+                onsuccess: function(response) {},
+                onerror: function(message) {},
+                oninvalidfile: function(code) {},
+                onbeforeupload: function() {},
+                onafterupload: function() {},
+                onprogress: function(loaded, total) {},
+                supportedFormats: [],
+                maxSize: null,
+                responseType: 'json',
+                fileInputName: $element.attr('name') || 'f',
+                autoUpload: true
+            }, arguments[0]);
+
+            // init
+            $element.data('selfInstance', new uploader($element, options));
+        }
+        // configure initialised
+        else {
+
+            // check if uploader initialised
+            var u = $element.data('selfInstance');
+            if (!u) {
+                throw new Error('Uploader not initialised');
+            }
+
+            // return uploader object
+            if (!arguments.length) {
+                return u;
+            }
+
+            // call Uploader method
+            u[arguments[0]].apply(u, Array.prototype.slice.call(arguments, 1));
+        }
 
     };
+
+    /**
+     * AMD library
+     */
+    if (typeof define === 'function' && define.amd) {
+        define([], function() {
+            return uploader;
+        });
+    }
 
 })(jQuery);
