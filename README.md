@@ -3,7 +3,7 @@ Upload.js
 
 Fully customizable frontend uploader component. UI you are making yourself.
 
-## Quick example:
+## Quick example
 
 ```javascript
 $('#fileInput').uploader({
@@ -43,3 +43,9 @@ $('#fileInput').uploader({
     responseType: 'html'
 });
 ```
+
+## Backends
+
+Language | Library
+---------|--------
+PHP      | https://github.com/sokil/php-upload
