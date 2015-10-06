@@ -1,0 +1,15 @@
+{
+    "name": "upload.js",
+    "version": "0.0.1",
+    "description": "upload.js",
+    "main": "dist/upload.js",
+    "author": "Dmytro Sokil <dmytro.sokil@gmail.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "grunt-contrib-uglify": "0.*",
+        "grunt-contrib-jshint": "0.*",
+        "grunt-umd": "^2.3.3"
+    },
+    "dependencies": {
+    }
+}
