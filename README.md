@@ -1,6 +1,10 @@
 Upload.js
 =========
 
+Fully customizable frontend uploader component. UI you are making yourself.
+
+## Quick example
+
 ```javascript
 $('#fileInput').uploader({
     transport: 'xhr',
@@ -16,6 +20,7 @@ $('#fileInput').uploader({
         $('#status').html(response);
     },
     onprogress: function(loaded, total) {
+        // Twitter bootstrap progress
         var persents = Math.ceil(loaded / total * 100);
         var $progress = $('#fileInput')
             .closest('form')
@@ -38,3 +43,9 @@ $('#fileInput').uploader({
     responseType: 'html'
 });
 ```
+
+## Backends
+
+Language | Library
+---------|--------
+PHP      | https://github.com/sokil/php-upload
