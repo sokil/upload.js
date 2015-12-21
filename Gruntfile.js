@@ -8,7 +8,7 @@ module.exports = function (grunt) {
     grunt.initConfig({
         jshint: {
             files: [
-                'src/*.js',
+                'src/*.js'
             ],
             options: {
                 loopfunc: true,
@@ -29,7 +29,11 @@ module.exports = function (grunt) {
                 },
                 files: {
                     'dist/upload.js': [
-                        'src/*.js'
+                        'src/progress/*.js',
+                        'src/transport/*.js',
+                        'src/helper.js',
+                        'src/upload.js',
+                        'src/upload.jquery.js'
                     ]
                 }
             },
@@ -49,14 +53,21 @@ module.exports = function (grunt) {
         umd: {
             dist: {
                 src: 'dist/upload.js',
-                objectToExport: 'Uploader',
-                amdModuleId: 'uploader',
+                objectToExport: 'Upload',
+                amdModuleId: 'upload',
                 deps: {
                     default: ['$'],
                     amd: ['jquery'],
                     cjs: ['jquery'],
                     global: ['jQuery']
                 }
+            }
+        },
+        watch: {
+            js: {
+                files: ['src/**/*'],
+                tasks: ['build'],
+                options: {},
             },
         }
     });
@@ -64,11 +75,20 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-umd');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('default', [
+    grunt.registerTask('build', [
         'jshint',
         'uglify:concat',
         'umd:dist',
         'uglify:compress'
+    ]);
+
+    grunt.registerTask('rebuild', [
+        'watch'
+    ]);
+
+    grunt.registerTask('default', [
+        'build'
     ]);
 };

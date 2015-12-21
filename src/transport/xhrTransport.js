@@ -1,50 +1,76 @@
-var XhrTransport = function() {
-    var self = this;
+var XhrTransport = function(
+    fileInput,
+    uploadUrl,
+    beforeUploadCallback,
+    progressCallback,
+    successCallback,
+    errorCallback,
+    afterUploadCallback
+) {
 
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState !== 4) {
-            return;
-        }
+    this.files = fileInput.files;
+    this.name = fileInput.getAttribute('name');
 
-        try {
-            if (xhr.status !== 200) {
-                throw new Error('Server returns error code ' + xhr.status);
+    this.uploadUrl = uploadUrl;
+    this.successCallback = successCallback;
+    this.errorCallback = errorCallback;
+    this.beforeUploadCallback = beforeUploadCallback;
+    this.afterUploadCallback = afterUploadCallback;
+    this.progressCallback = progressCallback;
+};
+
+XhrTransport.prototype = {
+    createXhr: function() {
+        var self = this;
+        
+        var xhr = new XMLHttpRequest();
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) {
+                return;
             }
 
-            var response = xhr.responseText;
-            if (self.options.responseType === 'json') {
-                response = response ? eval("(" + response + ")") : {};
+            try {
+                if (xhr.status !== 200) {
+                    throw new Error('Server returns error code ' + xhr.status);
+                }
+                var response = JSON.parse(xhr.responseText);
+                self.successCallback.call(self, response);
+            } catch (e) {
+                self.errorCallback.call(self, e.message);
             }
 
-            self.options.onsuccess.call(self, response);
-        }
-        catch (e) {
-            self.options.onerror.call(self, e.message);
-        }
-
-        self.options.onafterupload.call(self);
-    };
-
-    if ('upload' in xhr) {
-        xhr.upload.onprogress = function(e) {
-            self.options.onprogress.call(self, e.loaded, e.total);
+            self.afterUploadCallback.call(self);
         };
-    } else {
-        setTimeout(self._nginxUpdateProgress, 1000);
+
+        // init progress
+        if ('upload' in xhr) {
+            xhr.upload.onprogress = function(e) {
+                self.progressCallback.call(self, e.loaded, e.total);
+            };
+        }
+
+        return xhr;
+    },
+    
+    send: function() {
+
+        var xhr = [],
+            file;
+
+        for (var i = 0; i < this.files.length; i++) {
+            if (this.beforeUploadCallback.call(this) === false) {
+                return;
+            }
+
+            xhr[i] = this.createXhr();
+            xhr[i].open("POST", this.uploadUrl, true);
+            xhr[i].setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+            var formData = new FormData();
+            formData.append(this.name, this.files[i]);
+
+            xhr[i].send(formData);
+        }
     }
-
-    var uri = this._buildUploadHandlerUrl(),
-        formData = new FormData();
-
-    formData.append(this.options.fileInputName, this.fileInput.get(0).files[0]);
-
-    // send
-    xhr.open("POST", uri, true);
-
-    if (!this.isCrossDomain()) {
-        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    }
-
-    xhr.send(formData);
 };
