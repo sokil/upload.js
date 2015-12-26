@@ -50,8 +50,43 @@ function Upload(element, options) {
         });
     }
 
+    // url
+    var uploadUrl;
+    if ('function' === typeof this.options.uploadUrl) {
+        uploadUrl = this.options.uploadUrl();
+    } else {
+        uploadUrl = this.options.uploadUrl;
+    }
+
+    // detect transport
+    if (this.options.transport && ['xhr', 'iframe'].indexOf(this.options.transport) !== -1) {
+        transportName = this.options.transport;
+    }
+
+    var Transport;
+    if (transportName === 'xhr' && 'undefined' !== typeof FormData) {
+        Transport = XhrTransport;
+    } else {
+        Transport = IframeTransport;
+    }
+
+    // execute transport
+    this.transport = new Transport(
+        this.fileInput,
+        uploadUrl,
+        this.options.onbeforeupload,
+        this.options.onprogress,
+        this.options.onsuccess,
+        this.options.onerror,
+        this.options.onafterupload
+    );
+
+    if (this.options.progressUrl && transportName === 'iframe') {
+        this.transport.setProgressUrl(this.options.progressUrl);
+    }
+
     // multiple
-    if (this.options.multiple) {
+    if (this.options.multiple && transportName === 'xhr') {
         element.setAttribute('multiple', 'multiple');
     } else {
         element.removeAttribute('multiple');
@@ -122,43 +157,7 @@ Upload.prototype = {
             return;
         }
 
-        // url
-        var uploadUrl;
-        if ('function' === typeof this.options.uploadUrl) {
-            uploadUrl = this.options.uploadUrl();
-        } else {
-            uploadUrl = this.options.uploadUrl;
-        }
-
-        // detect transport
-        var transportName;
-        if (this.options.transport && ['xhr', 'iframe'].indexOf(this.options.transport) !== -1) {
-            transportName = this.options.transport;
-        }
-
-        var Transport;
-        if (transportName === 'xhr' && 'undefined' !== typeof FormData) {
-            Transport = XhrTransport;
-        } else {
-            Transport = IframeTransport;
-        }
-
-        // execute transport
-        var transport = new Transport(
-            this.fileInput,
-            uploadUrl,
-            this.options.onbeforeupload,
-            this.options.onprogress,
-            this.options.onsuccess,
-            this.options.onerror,
-            this.options.onafterupload
-        );
-
-        if (transportName === 'iframe') {
-            transport.setProgressUrl(this.options.progressUrl);
-        }
-
-        transport.send();
+        this.transport.send();
 
         return this;
     }
