@@ -7,11 +7,11 @@ var XhrTransport = function(
     errorCallback,
     afterUploadCallback
 ) {
-
-    this.files = fileInput.files;
+    this.fileInput = fileInput;
     this.name = fileInput.getAttribute('name');
 
     this.uploadUrl = uploadUrl;
+
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
     this.beforeUploadCallback = beforeUploadCallback;
@@ -58,9 +58,11 @@ XhrTransport.prototype = {
         var xhr = [],
             file;
 
-        for (var i = 0; i < this.files.length; i++) {
+        var files = this.fileInput.files;
+
+        for (var i = 0; i < files.length; i++) {
             if (this.beforeUploadCallback.call(this) === false) {
-                return;
+                break;
             }
 
             xhr[i] = this.createXhr();
@@ -68,7 +70,7 @@ XhrTransport.prototype = {
             xhr[i].setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
             var formData = new FormData();
-            formData.append(this.name, this.files[i]);
+            formData.append(this.name, files[i]);
 
             xhr[i].send(formData);
         }

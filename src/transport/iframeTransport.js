@@ -7,65 +7,21 @@ var IframeTransport = function(
     errorCallback,
     afterUploadCallback
 ) {
+    this.fileInput = fileInput;
+    this.name = fileInput.getAttribute('name');
+
+    this.uploadUrl = uploadUrl;
+
+    this.successCallback = successCallback;
+    this.errorCallback = errorCallback;
+    this.beforeUploadCallback = beforeUploadCallback;
+    this.afterUploadCallback = afterUploadCallback;
+    this.progressCallback = progressCallback;
+
     this.uuid = helper.generateUUID();
-
-    // check if progress id already in uploadUrl
-    uploadUrl = helper.appendQueryParams(uploadUrl, {
-        'X-Progress-ID': this.uuid
-    });
-
-    // create iframe
-    var iframe = document.createElement('iframe');
-    iframe.src = "javascript:void(0);";
-    iframe.style = "display:none;";
-    iframe.name = "iframeUpload";
-    document.body.appendChild(iframe);
-
-    // create form
-    var form = document.createElement('form');
-    form.method = "post";
-    form.enctype = "multipart/form-data";
-    form.action = uploadUrl;
-    form.target = "iframeUpload";
-    form.style = "display:none;";
-    document.body.appendChild(form);
-
-    // clone input
-    var clonedFileInput = fileInput.cloneNode(true),
-        fileInputParent = fileInput.parentNode;
-
-    // move file input to form
-    form.appendChild(fileInput);
-
-    // add clean file input to old location
-    fileInputParent.appendChild(clonedFileInput);
-    fileInput = clonedFileInput;
-
-    var self = this;
-    iframe.addEventListener('load', function() {
-        try {
-            var response = iframe.contentDocument.body.innerHTML;
-            response = response ? JSON.parse(response) : {};
-            successCallback.call(self, response);
-        } catch (e) {
-            errorCallback.call(self, e);
-        }
-
-        afterUploadCallback.call(self);
-
-        iframe.parentNode.removeChild(iframe);
-        form.parentNode.removeChild(form);
-    });
-
-    // start check of progress
-    this.checkProgress(progressCallback);
 }
 
 IframeTransport.prototype = {
-    createIframe: function() {
-
-    },
-
     setProgressUrl: function(url) {
         this.progressUrl = url;
     },
@@ -104,12 +60,64 @@ IframeTransport.prototype = {
     },
 
     send: function() {
-        for (var i = 0; i < this.files.length; i++) {
-            if (this.beforeUploadCallback.call(this) === false) {
-                return;
-            }
+        if (this.beforeUploadCallback.call(this) === false) {
+            return;
         }
+
+        // check if progress id already in uploadUrl
+        var uploadUrl = helper.appendQueryParams(this.uploadUrl, {
+            'X-Progress-ID': this.uuid
+        });
+
+        // create iframe
+        var iframe = document.createElement('iframe');
+        iframe.src = "javascript:void(0);";
+        iframe.style.display = "none";
+        iframe.name = "iframeUpload";
+        document.body.appendChild(iframe);
+
+        // create form
+        var form = document.createElement('form');
+        form.method = "post";
+        form.enctype = "multipart/form-data";
+        form.action = uploadUrl;
+        form.target = "iframeUpload";
+        form.style = "display:none;";
+        document.body.appendChild(form);
+
+        // clone input
+        var clonedFileInput = this.fileInput.cloneNode(true),
+            fileInputParent = this.fileInput.parentNode;
+
+        // move file input to form
+        form.appendChild(this.fileInput);
+
+        // add clean file input to old location
+        fileInputParent.appendChild(clonedFileInput);
+        this.fileInput = clonedFileInput;
+
+        var self = this;
+        iframe.addEventListener('load', function() {
+            try {
+                var response = iframe.contentDocument.body.innerHTML;
+                response = response ? JSON.parse(response) : {};
+                self.successCallback.call(self, response);
+            } catch (e) {
+                self.errorCallback.call(self, e);
+            }
+
+            self.afterUploadCallback.call(self);
+
+            iframe.parentNode.removeChild(iframe);
+            form.parentNode.removeChild(form);
+        });
+
         // submit form
-        this.form.submit();
+        form.submit();
+
+        // start check of progress
+        if (this.progressUrl) {
+            this.checkProgress(this.progressCallback);
+        }
     }
 };

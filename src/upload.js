@@ -38,7 +38,7 @@ function Upload(element, options) {
         /**
          * User interface
          */
-        name: 'f',
+        name: 'file',
         autoUpload: true,
         multiple: false
     }, options);
@@ -50,60 +50,32 @@ function Upload(element, options) {
         });
     }
 
-    // url
-    var uploadUrl;
+    // upload url
+    if (!this.options.uploadUrl) {
+        throw Error('Upload URL not specified');
+    }
+
     if ('function' === typeof this.options.uploadUrl) {
-        uploadUrl = this.options.uploadUrl();
-    } else {
-        uploadUrl = this.options.uploadUrl;
+        this.options.uploadUrl = this.options.uploadUrl();
     }
 
-    // detect transport
-    if (this.options.transport && ['xhr', 'iframe'].indexOf(this.options.transport) !== -1) {
-        transportName = this.options.transport;
-    }
-
-    var Transport;
-    if (transportName === 'xhr' && 'undefined' !== typeof FormData) {
-        Transport = XhrTransport;
-    } else {
-        Transport = IframeTransport;
-    }
-
-    // execute transport
-    this.transport = new Transport(
-        this.fileInput,
-        uploadUrl,
-        this.options.onbeforeupload,
-        this.options.onprogress,
-        this.options.onsuccess,
-        this.options.onerror,
-        this.options.onafterupload
-    );
-
-    if (this.options.progressUrl && transportName === 'iframe') {
-        this.transport.setProgressUrl(this.options.progressUrl);
-    }
-
-    // multiple
-    if (this.options.multiple && transportName === 'xhr') {
-        element.setAttribute('multiple', 'multiple');
-    } else {
-        element.removeAttribute('multiple');
-    }
+    // name
+    element.setAttribute('name', this.options.name);
 
     // register event handlers
     if('function' === typeof options.onchoose) {
         this.fileInput.addEventListener('change', options.onchoose);
     }
 
-    // upload url
-    if (!this.options.uploadUrl) {
-        throw Error('Upload URL not specified');
-    }
+    // set transport
+    this.setTransport(this.options.transport);
 
-    // name
-    element.setAttribute('name', this.options.name);
+    // multiple
+    if (this.options.multiple && this.transport instanceof XhrTransport) {
+        element.setAttribute('multiple', 'multiple');
+    } else {
+        element.removeAttribute('multiple');
+    }
 }
 
 /**
@@ -111,9 +83,33 @@ function Upload(element, options) {
  */
 Upload.prototype = {
 
-    setOption: function(name, value) {
-        this.options[name] = value;
-        return this;
+    setTransport: function(transportName) {
+        // detect transport
+        if (!transportName || ['xhr', 'iframe'].indexOf(transportName) === -1) {
+            transportName = 'xhr';
+        }
+
+        var Transport;
+        if (transportName === 'xhr' && 'undefined' !== typeof FormData) {
+            Transport = XhrTransport;
+        } else {
+            Transport = IframeTransport;
+        }
+
+        // execute transport
+        this.transport = new Transport(
+            this.fileInput,
+            this.options.uploadUrl,
+            this.options.onbeforeupload,
+            this.options.onprogress,
+            this.options.onsuccess,
+            this.options.onerror,
+            this.options.onafterupload
+        );
+
+        if (this.options.progressUrl && transportName === 'iframe') {
+            this.transport.setProgressUrl(this.options.progressUrl);
+        }
     },
 
     /**
