@@ -79,7 +79,8 @@ IframeTransport.prototype = {
         var self = this;
         iframe.addEventListener("load", function() {
             try {
-                var response = iframe.contentDocument.body.innerHTML;
+                var body = iframe.contentDocument.body;
+                var response = body.textContent || body.innerText;
                 response = response ? JSON.parse(response) : {};
                 self.successCallback.call(self, response);
             } catch (e) {
