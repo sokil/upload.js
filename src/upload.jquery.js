@@ -1,28 +1,21 @@
-$.fn.uploader = function() {
+$.fn.upload = function() {
 
-    var $element = $(this);
+    var $element = this,
+        element = $element.get(0);
 
     // init
     if (arguments.length && typeof arguments[0] === 'object') {
         // init
-        $element.data('selfInstance', new Uploader($element, arguments[0]));
-    }
-    // configure initialised
-    else {
-
+        $element.data('selfInstance', new Upload(element, arguments[0]));
+    } else {
         // check if uploader initialised
-        var u = $element.data('selfInstance');
-        if (!u) {
-            throw new Error('Uploader not initialised');
-        }
-
-        // return uploader object
-        if (!arguments.length) {
-            return u;
+        var instance = $element.data('selfInstance');
+        if (!instance) {
+            throw new Error('Upload not initialised');
         }
 
         // call Uploader method
-        u[arguments[0]].apply(u, Array.prototype.slice.call(arguments, 1));
+        instance[arguments[0]].apply(instance, Array.prototype.slice.call(arguments, 1));
     }
 
 };

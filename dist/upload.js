@@ -14,289 +14,282 @@
   }
 }(this, function ($) {
 
-(function($) {
-    function uploader($element, options) {
+var IframeTransport = function(fileInput, uploadUrl, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+    this.fileInput = fileInput;
+    this.name = fileInput.getAttribute("name");
+    this.uploadUrl = uploadUrl;
+    this.successCallback = successCallback;
+    this.errorCallback = errorCallback;
+    this.beforeUploadCallback = beforeUploadCallback;
+    this.afterUploadCallback = afterUploadCallback;
+    this.progressCallback = progressCallback;
+    this.uuid = helper.generateUUID();
+};
+
+IframeTransport.prototype = {
+    setProgressUrl: function(url) {
+        this.progressUrl = url;
+    },
+    checkProgress: function(callback) {
         var self = this;
-        this.fileInput = $element;
-        this.options = $.extend({}, {
-            crossDomain: null,
-            transport: null,
-            progressHandlerUrl: null,
-            uploadHandlerUrl: null,
-            uploadHandlerParams: function() {},
-            classname: null,
-            onchoose: function() {},
-            onsuccess: function(response) {},
-            onerror: function(message) {},
-            oninvalidfile: function(code) {},
-            onbeforeupload: function() {},
-            onafterupload: function() {},
-            onprogress: function(loaded, total) {},
-            supportedFormats: [],
-            maxSize: null,
-            responseType: "json",
-            fileInputName: $element.attr("name") || "f",
-            autoUpload: true
-        }, options);
-        this.container = this.fileInput.parent().css({
-            overflow: "hidden"
+        this.progressUrl = helper.appendQueryParams(this.progressUrl, {
+            "X-Progress-ID": this.uuid
         });
-        if (this.container.css("position") === "static") {
-            this.container.css({
-                position: "relative"
-            });
+        this.xhr = new XMLHttpRequest();
+        this.xhr.open("GET", this.progressUrl, true);
+        this.xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) {
+                return;
+            }
+            var response = eval(responseText);
+            switch (response.state) {
+              case "uploading":
+                callback.call(self, response.received, response.size);
+                setTimeout(function() {
+                    self.xhr.send(null);
+                }, interval);
+                break;
+            }
+        };
+        this.xhr.send(null);
+    },
+    send: function() {
+        if (this.beforeUploadCallback.call(this) === false) {
+            return;
         }
-        if (this.options.classname) {
-            this.container.addClass(this.options.classname);
-        }
-        this.fileInput.css({
-            opacity: 0,
-            position: "absolute",
-            zIndex: 100,
-            top: "0px",
-            right: "0px",
-            fontSize: "200px",
-            padding: "0px",
-            margin: "0px",
-            cursor: "pointer"
+        var uploadUrl = helper.appendQueryParams(this.uploadUrl, {
+            "X-Progress-ID": this.uuid
         });
-        if (options.autoUpload) {
-            this.fileInput.change(function() {
-                self.uploadFile();
-            });
-        }
-        if ("function" === typeof options.onchoose) {
-            this.fileInput.change($.proxy(options.onchoose, this));
-        }
-        this.fileInput.appendTo(this.container);
-    }
-    uploader.prototype = {
-        VALIDATE_ERROR_SIZE: 0,
-        VALIDATE_ERROR_FORMAT: 1,
-        isCrossDomain: function() {
-            if (null !== this.options.crossDomain) {
-                return !!this.options.crossDomain;
-            }
-            return this.options.uploadHandlerUrl.indexOf(location.host) === -1;
-        },
-        setOption: function(name, value) {
-            this.options[name] = value;
-            return this;
-        },
-        setTransport: function(transport) {
-            this.options.transport = transport;
-            return this;
-        },
-        setUploadHandlerUrl: function(url) {
-            this.options.uploadHandlerUrl = url;
-            return this;
-        },
-        _validate: function() {
-            var file = this.fileInput.get(0).files[0];
-            if (this.options.maxSize && file.size > this.options.maxSize) {
-                throw this.VALIDATE_ERROR_SIZE;
-            }
-            if (this.options.supportedFormats.length) {
-                var currentFormat = file.name.substr(file.name.lastIndexOf(".") + 1), formatAllowed = false;
-                for (var i = 0; i < this.options.supportedFormats.length; i++) {
-                    if (currentFormat.toLowerCase() === this.options.supportedFormats[i].toLowerCase()) {
-                        formatAllowed = true;
-                        break;
-                    }
-                }
-                if (!formatAllowed) {
-                    throw this.VALIDATE_ERROR_FORMAT;
-                }
-            }
-        },
-        uploadFile: function() {
+        var iframe = document.createElement("iframe");
+        iframe.src = "javascript:void(0);";
+        iframe.style.display = "none";
+        iframe.name = "iframeUpload";
+        document.body.appendChild(iframe);
+        var form = document.createElement("form");
+        form.method = "post";
+        form.enctype = "multipart/form-data";
+        form.action = uploadUrl;
+        form.target = "iframeUpload";
+        form.style = "display:none;";
+        document.body.appendChild(form);
+        var clonedFileInput = this.fileInput.cloneNode(true), fileInputParent = this.fileInput.parentNode;
+        form.appendChild(this.fileInput);
+        fileInputParent.appendChild(clonedFileInput);
+        this.fileInput = clonedFileInput;
+        var self = this;
+        iframe.addEventListener("load", function() {
             try {
-                this._validate();
-            } catch (code) {
-                this.options.oninvalidfile.call(this, code);
+                var body = iframe.contentDocument.body;
+                var response = body.textContent || body.innerText;
+                response = response ? JSON.parse(response) : {};
+                self.successCallback.call(self, response);
+            } catch (e) {
+                self.errorCallback.call(self, e);
+            }
+            self.afterUploadCallback.call(self);
+            iframe.parentNode.removeChild(iframe);
+            form.parentNode.removeChild(form);
+        });
+        form.submit();
+        if (this.progressUrl) {
+            this.checkProgress(this.progressCallback);
+        }
+    }
+};
+
+var XhrTransport = function(fileInput, uploadUrl, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+    this.fileInput = fileInput;
+    this.name = fileInput.getAttribute("name");
+    this.uploadUrl = uploadUrl;
+    this.successCallback = successCallback;
+    this.errorCallback = errorCallback;
+    this.beforeUploadCallback = beforeUploadCallback;
+    this.afterUploadCallback = afterUploadCallback;
+    this.progressCallback = progressCallback;
+};
+
+XhrTransport.prototype = {
+    createXhr: function() {
+        var self = this;
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) {
                 return;
             }
-            if (this.options.onbeforeupload.call(this) === false) {
-                return;
+            try {
+                if (xhr.status !== 200) {
+                    throw new Error("Server returns error code " + xhr.status);
+                }
+                var response = JSON.parse(xhr.responseText);
+                self.successCallback.call(self, response);
+            } catch (e) {
+                self.errorCallback.call(self, e.message);
             }
-            if (this.options.transport) {
-                this["_" + this.options.transport + "Upload"]();
-            } else {
-                try {
-                    this._xhrUpload();
-                } catch (e) {
-                    this._formUpload();
-                }
-            }
-            return this;
-        },
-        _streamUpload: function() {
-            var self = this;
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState !== 4) {
-                    return;
-                }
-                try {
-                    if (xhr.status !== 200) {
-                        throw new Error("Server returns error code " + xhr.status);
-                    }
-                    var response = xhr.responseText;
-                    if (self.options.responseType === "json") {
-                        response = response ? eval("(" + response + ")") : {};
-                    }
-                    self.options.onsuccess.call(self, response);
-                } catch (e) {
-                    self.options.onerror.call(self, e.message);
-                }
-                self.options.onafterupload.call(self);
+            self.afterUploadCallback.call(self);
+        };
+        if ("upload" in xhr) {
+            xhr.upload.onprogress = function(e) {
+                self.progressCallback.call(self, e.loaded, e.total);
             };
-            if ("upload" in xhr) {
-                xhr.upload.onprogress = function(e) {
-                    self.options.onprogress.call(self, e.loaded, e.total);
-                };
-            }
-            var file = this.fileInput.get(0).files[0];
-            var params = {};
-            params[this.options.fileInputName] = file.name;
-            var uri = this._buildUploadHandlerUrl(params);
-            xhr.open("POST", uri, true);
-            if (!this.isCrossDomain()) {
-                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-                xhr.setRequestHeader("Content-Type", "application/octet-stream");
-            }
-            xhr.send(file);
-        },
-        _xhrUpload: function() {
-            var self = this;
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState !== 4) {
-                    return;
-                }
-                try {
-                    if (xhr.status !== 200) {
-                        throw new Error("Server returns error code " + xhr.status);
-                    }
-                    var response = xhr.responseText;
-                    if (self.options.responseType === "json") {
-                        response = response ? eval("(" + response + ")") : {};
-                    }
-                    self.options.onsuccess.call(self, response);
-                } catch (e) {
-                    self.options.onerror.call(self, e.message);
-                }
-                self.options.onafterupload.call(self);
-            };
-            if ("upload" in xhr) {
-                xhr.upload.onprogress = function(e) {
-                    self.options.onprogress.call(self, e.loaded, e.total);
-                };
-            } else {
-                setTimeout(self._nginxUpdateProgress, 1e3);
-            }
-            var uri = this._buildUploadHandlerUrl(), formData = new FormData();
-            formData.append(this.options.fileInputName, this.fileInput.get(0).files[0]);
-            xhr.open("POST", uri, true);
-            if (!this.isCrossDomain()) {
-                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            }
-            xhr.send(formData);
-        },
-        _formUpload: function() {
-            var additionalRequestParams = {};
-            if (-1 === this.options.uploadHandlerUrl.indexOf("X-Progress-ID")) {
-                var uuid = "";
-                for (var i = 0; i < 32; i++) {
-                    uuid += Math.floor(Math.random() * 16).toString(16);
-                }
-                additionalRequestParams["X-Progress-ID"] = uuid;
-            }
-            var requestUri = this._buildUploadHandlerUrl(additionalRequestParams);
-            var $iframe = $('<iframe src="javascript:void(0);" style="display:none;" name="iframeUpload"></iframe>').appendTo(document.body);
-            var $form = $('<form method="post" enctype="multipart/form-data" action="' + requestUri + '" target="iframeUpload" style="display:none;"/>').appendTo(document.body);
-            var clonedFileInput = this.fileInput.clone(true), fileInputParent = this.fileInput.parent();
-            $(this.fileInput).attr("name", this.options.fileInputName).appendTo($form);
-            this.fileInput = clonedFileInput.appendTo(fileInputParent);
-            var self = this;
-            $iframe.load(function() {
-                try {
-                    var response = $iframe.contents().find("body").html();
-                    if (self.options.responseType === "json") {
-                        response = response ? eval("(" + response + ")") : {};
-                    }
-                    self.options.onsuccess.call(self, response);
-                } catch (e) {
-                    self.options.onerror.call(self, e);
-                }
-                self.options.onafterupload.call(self);
-                $iframe.remove();
-                $form.remove();
-            });
-            setTimeout(self._nginxUpdateProgress, 1e3);
-            $form.submit();
-        },
-        _nginxUpdateProgress: function() {
-            var self = this;
-            var url = this.options.progressHandlerUrl;
-            if (-1 === url.indexOf("X-Progress-ID")) {
-                url = this._appendQueryParams(url, {
-                    "X-Progress-ID": uuid
-                });
-            }
-            $.get(url, function(responseText) {
-                var response = eval(responseText);
-                switch (response.state) {
-                  case "uploading":
-                    this.options.onprogress.call(self, response.received, response.size);
-                    setTimeout(self._nginxUpdateProgress, 5e3);
-                    break;
-                }
-            });
-        },
-        _buildUploadHandlerUrl: function(additionalParams) {
-            var params = this.options.uploadHandlerParams();
-            if (typeof additionalParams !== "undefined") {
-                params = $.extend({}, params, additionalParams);
-            }
-            return this._appendQueryParams(this.options.uploadHandlerUrl, params);
-        },
-        _appendQueryParams: function(url, params) {
-            var queryString = [], queryMarkPos = url.indexOf("?");
-            if (queryMarkPos >= 0) {
-                queryString = url.substr(queryMarkPos + 1).split("&");
-                url = url.substr(0, queryMarkPos);
-            }
-            for (var key in params) {
-                queryString.push(key + "=" + encodeURIComponent(params[key]));
-            }
-            if (queryString.length > 0) {
-                url += "?" + queryString.join("&");
-            }
-            return url;
         }
-    };
-    $.fn.uploader = function() {
-        var $element = $(this);
-        if (arguments.length && typeof arguments[0] === "object") {
-            $element.data("selfInstance", new uploader($element, arguments[0]));
-        } else {
-            var u = $element.data("selfInstance");
-            if (!u) {
-                throw new Error("Uploader not initialised");
+        return xhr;
+    },
+    send: function() {
+        var xhr = [], file;
+        var files = this.fileInput.files;
+        for (var i = 0; i < files.length; i++) {
+            if (this.beforeUploadCallback.call(this) === false) {
+                break;
             }
-            if (!arguments.length) {
-                return u;
-            }
-            u[arguments[0]].apply(u, Array.prototype.slice.call(arguments, 1));
+            xhr[i] = this.createXhr();
+            xhr[i].open("POST", this.uploadUrl, true);
+            xhr[i].setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            var formData = new FormData();
+            formData.append(this.name, files[i]);
+            xhr[i].send(formData);
         }
-    };
-    if (typeof define === "function" && define.amd) {
-        define([], function() {
-            return uploader;
+    }
+};
+
+var helper = {
+    extend: function() {
+        var result = {};
+        for (var i = 0; i < arguments.length; i++) {
+            var obj = arguments[i];
+            for (var key in obj) {
+                result[key] = obj[key];
+            }
+        }
+        return result;
+    },
+    generateUUID: function() {
+        var uuid = "";
+        for (var i = 0; i < 32; i++) {
+            uuid += Math.floor(Math.random() * 16).toString(16);
+        }
+        return uuid;
+    },
+    appendQueryParams: function(url, params) {
+        var queryString = [], queryMarkPos = url.indexOf("?");
+        if (queryMarkPos >= 0) {
+            queryString = url.substr(queryMarkPos + 1).split("&");
+            url = url.substr(0, queryMarkPos);
+        }
+        for (var key in params) {
+            queryString.push(key + "=" + encodeURIComponent(params[key]));
+        }
+        if (queryString.length > 0) {
+            url += "?" + queryString.join("&");
+        }
+        return url;
+    }
+};
+
+function Upload(element, options) {
+    var self = this;
+    this.fileInput = element;
+    if (element.tagName !== "INPUT" || element.type !== "file") {
+        throw Error("Upload must be applied to input of file type");
+    }
+    this.container = element.parentNode;
+    this.options = helper.extend({}, {
+        onchoose: function() {},
+        oninvalidfile: function(code) {},
+        onsuccess: function(response) {},
+        onerror: function(message) {},
+        onbeforeupload: function() {},
+        onafterupload: function() {},
+        onprogress: function(loaded, total) {},
+        allowedFormats: [],
+        maxSize: null,
+        transport: "xhr",
+        crossDomain: null,
+        uploadUrl: null,
+        progressUrl: null,
+        name: "file",
+        autoUpload: true,
+        multiple: false
+    }, options);
+    if (this.options.autoUpload) {
+        this.fileInput.addEventListener("change", function() {
+            self.uploadFile.call(self);
         });
     }
-})(jQuery);
+    if (!this.options.uploadUrl) {
+        throw Error("Upload URL not specified");
+    }
+    if ("function" === typeof this.options.uploadUrl) {
+        this.options.uploadUrl = this.options.uploadUrl();
+    }
+    element.setAttribute("name", this.options.name);
+    if ("function" === typeof options.onchoose) {
+        this.fileInput.addEventListener("change", options.onchoose);
+    }
+    this.setTransport(this.options.transport);
+    if (this.options.multiple && this.transport instanceof XhrTransport) {
+        element.setAttribute("multiple", "multiple");
+    } else {
+        element.removeAttribute("multiple");
+    }
+}
+
+Upload.prototype = {
+    setTransport: function(transportName) {
+        if (!transportName || [ "xhr", "iframe" ].indexOf(transportName) === -1) {
+            transportName = "xhr";
+        }
+        var Transport;
+        if (transportName === "xhr" && "undefined" !== typeof FormData) {
+            Transport = XhrTransport;
+        } else {
+            Transport = IframeTransport;
+        }
+        this.transport = new Transport(this.fileInput, this.options.uploadUrl, this.options.onbeforeupload, this.options.onprogress, this.options.onsuccess, this.options.onerror, this.options.onafterupload);
+        if (this.options.progressUrl && transportName === "iframe") {
+            this.transport.setProgressUrl(this.options.progressUrl);
+        }
+    },
+    validate: function() {
+        if (!this.options.multiple && this.fileInput.files.length > 1) {
+            throw Error("Multiple upload not allowed");
+        }
+        for (var i = 0; i < this.fileInput.files.length; i++) {
+            var file = this.fileInput.files[i];
+            if (this.options.maxSize && file.size > this.options.maxSize) {
+                throw Error("Size of file not allowed");
+            }
+            if (this.options.allowedFormats.length) {
+                var extension = file.name.substr(file.name.lastIndexOf(".") + 1).toLowerCase();
+                if (-1 === this.options.allowedFormats.indexOf(extension) && -1 === this.options.allowedFormats.indexOf(file.type)) {
+                    throw "Format not allowed";
+                }
+            }
+        }
+    },
+    uploadFile: function() {
+        try {
+            this.validate();
+        } catch (code) {
+            this.options.oninvalidfile.call(this, code);
+            return;
+        }
+        this.transport.send();
+        return this;
+    }
+};
+
+$.fn.upload = function() {
+    var $element = this, element = $element.get(0);
+    if (arguments.length && typeof arguments[0] === "object") {
+        $element.data("selfInstance", new Upload(element, arguments[0]));
+    } else {
+        var instance = $element.data("selfInstance");
+        if (!instance) {
+            throw new Error("Upload not initialised");
+        }
+        instance[arguments[0]].apply(instance, Array.prototype.slice.call(arguments, 1));
+    }
+};
 return Upload;
 
 }));
