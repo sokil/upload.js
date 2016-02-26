@@ -43,6 +43,8 @@ $('#fileInput').uploader({
     responseType: 'html'
 });
 ```
+## Sandbox
+Backend and frontend may be tested in sandbox https://github.com/sokil/php-upload-sandbox. Clone repo and start server.
 
 ## Backends
 
