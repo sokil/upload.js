@@ -48,6 +48,7 @@ Backend and frontend may be tested in sandbox https://github.com/sokil/php-uploa
 
 ## Backends
 
-Language | Library
----------|--------
-PHP      | https://github.com/sokil/php-upload
+Language         | Library
+-----------------|------------------------------------
+PHP Library      | https://github.com/sokil/php-upload
+Symfony Bundle   | https://github.com/sokil/FileStorageBundle
