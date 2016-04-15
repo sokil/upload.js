@@ -6,7 +6,7 @@ Fully customizable frontend uploader component. UI you are making yourself.
 ## Quick example
 
 ```javascript
-$('#fileInput').uploader({
+$('#fileInput').upload({
     transport: 'xhr',
     uploadHandlerUrl: '/upload',
     progressHandlerUrl: '/progress',
