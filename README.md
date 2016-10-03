@@ -59,3 +59,33 @@ Language         | Library
 -----------------|------------------------------------
 PHP Library      | https://github.com/sokil/php-upload
 Symfony Bundle   | https://github.com/sokil/FileStorageBundle
+
+## Styles
+
+Library has no styles. But you can do your own:
+
+```html
+<a id="newAttachment" class="btn-upload btn btn-success btn-xs pull-right">
+    <input type="file" id="attachmentButton" name="file">
+    <label for="attachmentButton">
+        <span class="glyphicon glyphicon-upload"></span>&nbsp;Додати файл
+    </label>
+</a>
+```
+
+```less
+.btn-upload {
+    overflow: hidden;
+    input {
+        opacity: 0;
+        width: 0.1px;
+        height: 0.1px;
+        position: absolute;
+    }
+    label {
+        padding: 0;
+        margin: 0;
+        font-weight: 400;
+    }
+}
+```
