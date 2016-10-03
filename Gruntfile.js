@@ -54,7 +54,6 @@ module.exports = function (grunt) {
             dist: {
                 src: 'dist/upload.js',
                 objectToExport: 'Upload',
-                amdModuleId: 'upload',
                 deps: {
                     default: ['$'],
                     amd: ['jquery'],

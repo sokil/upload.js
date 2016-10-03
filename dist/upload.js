@@ -1,7 +1,7 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module unless amdModuleId is set
-    define('upload', ["jquery"], function (a0) {
+    define(["jquery"], function (a0) {
       return (root['Upload'] = factory(a0));
     });
   } else if (typeof exports === 'object') {
