@@ -1,6 +1,7 @@
 var XhrTransport = function(
     fileInput,
     uploadUrl,
+    withCredentials,
     beforeUploadCallback,
     progressCallback,
     successCallback,
@@ -11,6 +12,7 @@ var XhrTransport = function(
     this.name = fileInput.getAttribute('name');
 
     this.uploadUrl = uploadUrl;
+    this.withCredentials = withCredentials;
 
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
@@ -24,6 +26,11 @@ XhrTransport.prototype = {
         var self = this;
         
         var xhr = new XMLHttpRequest();
+
+        // allow CORS request with cookies
+        if (this.withCredentials === true) {
+            xhr.withCredentials = true;
+        }
         
         xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) {

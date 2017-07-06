@@ -14,7 +14,7 @@
   }
 }(this, function ($) {
 
-var IframeTransport = function(fileInput, uploadUrl, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+var IframeTransport = function(fileInput, uploadUrl, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
     this.fileInput = fileInput;
     this.name = fileInput.getAttribute("name");
     this.uploadUrl = uploadUrl;
@@ -97,10 +97,11 @@ IframeTransport.prototype = {
     }
 };
 
-var XhrTransport = function(fileInput, uploadUrl, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+var XhrTransport = function(fileInput, uploadUrl, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
     this.fileInput = fileInput;
     this.name = fileInput.getAttribute("name");
     this.uploadUrl = uploadUrl;
+    this.withCredentials = withCredentials;
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
     this.beforeUploadCallback = beforeUploadCallback;
@@ -112,6 +113,9 @@ XhrTransport.prototype = {
     createXhr: function() {
         var self = this;
         var xhr = new XMLHttpRequest();
+        if (this.withCredentials === true) {
+            xhr.withCredentials = true;
+        }
         xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) {
                 return;
@@ -204,6 +208,7 @@ function Upload(element, options) {
         maxSize: null,
         transport: "xhr",
         crossDomain: null,
+        withCredentials: false,
         uploadUrl: null,
         progressUrl: null,
         name: "file",
@@ -244,7 +249,7 @@ Upload.prototype = {
         } else {
             Transport = IframeTransport;
         }
-        this.transport = new Transport(this.fileInput, this.options.uploadUrl, this.options.onbeforeupload, this.options.onprogress, this.options.onsuccess, this.options.onerror, this.options.onafterupload);
+        this.transport = new Transport(this.fileInput, this.options.uploadUrl, this.options.withCredentials, this.options.onbeforeupload, this.options.onprogress, this.options.onsuccess, this.options.onerror, this.options.onafterupload);
         if (this.options.progressUrl && transportName === "iframe") {
             this.transport.setProgressUrl(this.options.progressUrl);
         }

@@ -30,6 +30,7 @@ function Upload(element, options) {
          */
         transport: 'xhr',
         crossDomain: null,
+        withCredentials: false,
         uploadUrl: null,
         /**
          * Progress
@@ -100,6 +101,7 @@ Upload.prototype = {
         this.transport = new Transport(
             this.fileInput,
             this.options.uploadUrl,
+            this.options.withCredentials,
             this.options.onbeforeupload,
             this.options.onprogress,
             this.options.onsuccess,

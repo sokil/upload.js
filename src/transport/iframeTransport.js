@@ -1,6 +1,7 @@
 var IframeTransport = function(
     fileInput,
     uploadUrl,
+    withCredentials,
     beforeUploadCallback,
     progressCallback,
     successCallback,
