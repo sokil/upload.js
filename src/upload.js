@@ -29,7 +29,6 @@ function Upload(element, options) {
          * Transport
          */
         transport: 'xhr',
-        crossDomain: null,
         withCredentials: false,
         uploadUrl: null,
         /**
