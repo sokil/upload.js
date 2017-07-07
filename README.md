@@ -14,12 +14,15 @@ npm install upload.js
 
 ```javascript
 $('#fileInput').upload({
-    transport: 'xhr',
-    uploadHandlerUrl: '/upload',
-    progressHandlerUrl: '/progress',
-    uploadHandlerParams: function() {
-        return {additionalParam: 'additionalValue'};
-    },
+    transport: 'xhr', // available transports: 'xhr' and 'iframe'
+    uploadUrl: '/upload', // may be function
+    withCredentials: true, // add cookies and auth for CORS requests
+    progressUrl: '/progress',
+    allowedFormats: [],
+    maxSize: null,
+    name: "file",
+    autoUpload: true,
+    multiple: false,
     onsuccess: function(response) {
         $('#status').html(response);
     },
@@ -47,7 +50,10 @@ $('#fileInput').upload({
             }, 800);
         }
     },
-    responseType: 'html'
+    onchoose: function() {},
+    oninvalidfile: function(code) {},
+    onbeforeupload: function() {},
+    onafterupload: function() {}
 });
 ```
 ## Sandbox
