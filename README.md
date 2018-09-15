@@ -22,7 +22,10 @@ $('#fileInput').upload({
     uploadUrl: '/upload', // may be function
     withCredentials: true, // add cookies and auth for CORS requests
     progressUrl: '/progress',
-    allowedFormats: [],
+    allowedFormats: [
+        'application/vnd.ms-excel', // may be MIME type
+        'xslx' // may be extension
+    ],
     maxSize: null,
     name: "file",
     autoUpload: true,
