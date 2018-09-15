@@ -1,3 +1,12 @@
+/**
+ * This file is part of the upload.js package.
+ *
+ * (c) Dmytro Sokil <dmytro.sokil@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 var helper = {
     /**
      * Extend object
