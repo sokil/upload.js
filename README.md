@@ -62,7 +62,7 @@ $('#fileInput').upload({
 ```
 
 If you like plain old JS:
-```
+```javascript
 const upload = new Upload(document.getElementById('fileInput'), {
     uploadUrl: '/upload', // may be function
 });
