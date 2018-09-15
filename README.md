@@ -14,6 +14,8 @@ npm install upload.js
 
 ## Quick example
 
+If you use jQuery:
+
 ```javascript
 $('#fileInput').upload({
     transport: 'xhr', // available transports: 'xhr' and 'iframe'
@@ -58,6 +60,14 @@ $('#fileInput').upload({
     onafterupload: function() {}
 });
 ```
+
+If you like plain old JS:
+```
+const upload = new Upload(document.getElementById('fileInput'), {
+    uploadUrl: '/upload', // may be function
+});
+```
+
 ## Sandbox
 Backend and frontend may be tested in sandbox https://github.com/sokil/php-upload-sandbox. Clone repo and start server.
 
