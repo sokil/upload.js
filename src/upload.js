@@ -32,7 +32,7 @@ function Upload(element, options) {
         /**
          * Validation
          */
-        allowedFormats: [],
+        allowedFormats: [], // may be MIME type or extension
         maxSize: null,
         /**
          * Transport
@@ -142,15 +142,15 @@ Upload.prototype = {
 
             // extension
             if (this.options.allowedFormats.length) {
-                var extension = file.name
-                    .substr(file.name.lastIndexOf('.') + 1)
-                    .toLowerCase();
-
-                if (-1 === this.options.allowedFormats.indexOf(extension) &&
-                    -1 === this.options.allowedFormats.indexOf(file.type)) {
+                var lastPointPos = file.name.lastIndexOf('.');
+                var extension = (lastPointPos === -1)
+                    ? null
+                    : file.name.substr(lastPointPos + 1).toLowerCase();
+                var isExtensionSupported = extension && this.options.allowedFormats.indexOf(extension) !== -1;
+                var isMimeTypeSupported = this.options.allowedFormats.indexOf(file.type) !== -1;
+                if (!isExtensionSupported && !isMimeTypeSupported) {
                     throw 'Format not allowed';
                 }
-
             }
         }
     },
