@@ -214,11 +214,14 @@ function Upload(element, options) {
         autoUpload: true,
         multiple: false
     }, options);
-    if (this.options.autoUpload) {
-        this.fileInput.addEventListener("change", function() {
+    this.fileInput.addEventListener("change", function(e) {
+        if ("function" === typeof options.onchoose) {
+            options.onchoose.call(self, e);
+        }
+        if (self.options.autoUpload) {
             self.uploadFile.call(self);
-        });
-    }
+        }
+    });
     if (!this.options.uploadUrl) {
         throw Error("Upload URL not specified");
     }
@@ -226,9 +229,6 @@ function Upload(element, options) {
         this.options.uploadUrl = this.options.uploadUrl();
     }
     element.setAttribute("name", this.options.name);
-    if ("function" === typeof options.onchoose) {
-        this.fileInput.addEventListener("change", options.onchoose);
-    }
     this.setTransport(this.options.transport);
     if (this.options.multiple && this.transport instanceof XhrTransport) {
         element.setAttribute("multiple", "multiple");

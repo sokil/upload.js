@@ -57,8 +57,16 @@ $('#fileInput').upload({
             }, 800);
         }
     },
-    onchoose: function() {},
-    oninvalidfile: function(code) {},
+    onchoose: function(event) {
+        // event: file input change event
+        // this: instance of Upload class 
+    },
+    oninvalidfile: function(error) {
+        // Error may be:
+        // * "Multiple upload not allowed": when options.multiple set to false but multiple files uploaded
+        // * "Size of file not allowed": when uploaded file size greater than options.maxSize
+        // * "Format not allowed": when type of file not patch options.allowedFormats
+    },
     onbeforeupload: function() {},
     onafterupload: function() {}
 });

@@ -52,12 +52,18 @@ function Upload(element, options) {
         multiple: false
     }, options);
 
-    // auto upload
-    if(this.options.autoUpload) {
-        this.fileInput.addEventListener('change', function() {
+    // handle file change
+    this.fileInput.addEventListener('change', function(e) {
+        // register event handlers
+        if ('function' === typeof options.onchoose) {
+            options.onchoose.call(self, e);
+        }
+
+        // auto upload
+        if (self.options.autoUpload) {
             self.uploadFile.call(self);
-        });
-    }
+        }
+    });
 
     // upload url
     if (!this.options.uploadUrl) {
@@ -71,10 +77,6 @@ function Upload(element, options) {
     // name
     element.setAttribute('name', this.options.name);
 
-    // register event handlers
-    if('function' === typeof options.onchoose) {
-        this.fileInput.addEventListener('change', options.onchoose);
-    }
 
     // set transport
     this.setTransport(this.options.transport);
