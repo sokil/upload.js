@@ -12,7 +12,7 @@
   } else {
     root['Upload'] = factory(root["jQuery"]);
   }
-}(this, function ($) {
+}(this, function (jQuery) {
 
 var IframeTransport = function(fileInput, uploadUrl, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
     this.fileInput = fileInput;
@@ -263,8 +263,11 @@ Upload.prototype = {
                 throw Error("Size of file not allowed");
             }
             if (this.options.allowedFormats.length) {
-                var extension = file.name.substr(file.name.lastIndexOf(".") + 1).toLowerCase();
-                if (-1 === this.options.allowedFormats.indexOf(extension) && -1 === this.options.allowedFormats.indexOf(file.type)) {
+                var lastPointPos = file.name.lastIndexOf(".");
+                var extension = lastPointPos === -1 ? null : file.name.substr(lastPointPos + 1).toLowerCase();
+                var isExtensionSupported = extension && this.options.allowedFormats.indexOf(extension) !== -1;
+                var isMimeTypeSupported = this.options.allowedFormats.indexOf(file.type) !== -1;
+                if (!isExtensionSupported && !isMimeTypeSupported) {
                     throw "Format not allowed";
                 }
             }
@@ -282,7 +285,7 @@ Upload.prototype = {
     }
 };
 
-$.fn.upload = function() {
+jQuery.fn.upload = function() {
     var $element = this, element = $element.get(0);
     if (arguments.length && typeof arguments[0] === "object") {
         $element.data("selfInstance", new Upload(element, arguments[0]));

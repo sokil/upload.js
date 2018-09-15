@@ -143,9 +143,7 @@ Upload.prototype = {
             // extension
             if (this.options.allowedFormats.length) {
                 var lastPointPos = file.name.lastIndexOf('.');
-                var extension = (lastPointPos === -1)
-                    ? null
-                    : file.name.substr(lastPointPos + 1).toLowerCase();
+                var extension = (lastPointPos === -1) ? null : file.name.substr(lastPointPos + 1).toLowerCase();
                 var isExtensionSupported = extension && this.options.allowedFormats.indexOf(extension) !== -1;
                 var isMimeTypeSupported = this.options.allowedFormats.indexOf(file.type) !== -1;
                 if (!isExtensionSupported && !isMimeTypeSupported) {
