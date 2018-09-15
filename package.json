@@ -11,5 +11,13 @@
         "grunt-contrib-watch": "0.6.1",
         "grunt-umd": "^2.3.3",
         "grunt": "^1.0.3"
-    }
+    },
+    "homepage": "https://github.com/sokil/upload.js",
+    "keywords": [
+      "upload",
+    ],
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/sokil/upload.js.git"
+    },
 }
