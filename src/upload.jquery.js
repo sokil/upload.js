@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-$.fn.upload = function() {
+jQuery.fn.upload = function() {
 
     var $element = this,
         element = $element.get(0);
