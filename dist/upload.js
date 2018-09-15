@@ -4,13 +4,13 @@
     define(["jquery"], function (a0) {
       return (root['Upload'] = factory(a0));
     });
-  } else if (typeof exports === 'object') {
+  } else if (typeof module === 'object' && module.exports) {
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
     // like Node.
     module.exports = factory(require("jquery"));
   } else {
-    root['Upload'] = factory(jQuery);
+    root['Upload'] = factory(root["jQuery"]);
   }
 }(this, function ($) {
 
@@ -207,7 +207,6 @@ function Upload(element, options) {
         allowedFormats: [],
         maxSize: null,
         transport: "xhr",
-        crossDomain: null,
         withCredentials: false,
         uploadUrl: null,
         progressUrl: null,
