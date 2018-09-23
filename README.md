@@ -12,7 +12,9 @@ Fully customizable frontend uploader component. UI you are making yourself.
 npm install upload.js
 ```
 
-## Quick example
+## Usage
+
+### Configuration
 
 If you use jQuery:
 
@@ -73,11 +75,28 @@ $('#fileInput').upload({
 ```
 
 If you like plain old JS:
+
 ```javascript
 const upload = new Upload(document.getElementById('fileInput'), {
     uploadUrl: '/upload', // may be function
 });
 ```
+
+### Autoupload and manual upload
+
+By default input configured to auto upload file. To disable autoupload, set `autoUpload` configuration parameter to false, and then call method `uploadFile`:
+
+```javascript
+const upload = new Upload(
+    document.getElementById('fileInput'), 
+    {
+        autoUpload: false,
+    }
+);
+
+upload.uploadFile();
+```
+
 
 ## Sandbox
 Backend and frontend may be tested in sandbox https://github.com/sokil/php-upload-sandbox. Clone repo and start server.
