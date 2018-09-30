@@ -2,7 +2,7 @@ Upload.js
 =========
 
 [![npm](https://img.shields.io/npm/v/upload.js.svg?maxAge=2592000?style=flat-square)](https://www.npmjs.com/package/upload.js)
-![npm](https://img.shields.io/npm/dt/upload.js.svg)
+[![npm](https://img.shields.io/npm/dt/upload.js.svg)](https://www.npmjs.com/package/upload.js)
 
 
 Fully customizable frontend uploader component. UI you are making yourself.
