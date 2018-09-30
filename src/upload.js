@@ -15,8 +15,6 @@ function Upload(element, options) {
         throw Error('Upload must be applied to input of file type');
     }
 
-    this.container = element.parentNode;
-
     // configuration
     this.options = helper.extend({}, {
         /**
@@ -47,7 +45,7 @@ function Upload(element, options) {
         /**
          * User interface
          */
-        name: 'file',
+        name: 'file', // default name of file, if it not set in input element
         autoUpload: true,
         multiple: false
     }, options);
@@ -70,12 +68,10 @@ function Upload(element, options) {
         throw Error('Upload URL not specified');
     }
 
-    if ('function' === typeof this.options.uploadUrl) {
-        this.options.uploadUrl = this.options.uploadUrl();
-    }
-
     // name
-    element.setAttribute('name', this.options.name);
+    if (!element.getAttribute('name')) {
+        element.setAttribute('name', this.options.name);
+    }
 
 
     // set transport
@@ -110,7 +106,6 @@ Upload.prototype = {
         // execute transport
         this.transport = new Transport(
             this.fileInput,
-            this.options.uploadUrl,
             this.options.withCredentials,
             this.options.onbeforeupload,
             this.options.onprogress,
@@ -163,7 +158,15 @@ Upload.prototype = {
             return;
         }
 
-        this.transport.send();
+        var uploadUrl;
+
+        if ('function' === typeof this.options.uploadUrl) {
+            uploadUrl = this.options.uploadUrl();
+        } else {
+            uploadUrl = this.options.uploadUrl;
+        }
+
+        this.transport.send(uploadUrl);
 
         return this;
     }

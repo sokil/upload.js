@@ -29,7 +29,7 @@ $('#fileInput').upload({
         'xslx' // may be extension
     ],
     maxSize: null,
-    name: "file",
+    name: "file", // default name of file, used if it not set in input element
     autoUpload: true,
     multiple: false,
     onsuccess: function(response) {

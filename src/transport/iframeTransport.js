@@ -9,7 +9,6 @@
 
 var IframeTransport = function(
     fileInput,
-    uploadUrl,
     withCredentials,
     beforeUploadCallback,
     progressCallback,
@@ -19,9 +18,6 @@ var IframeTransport = function(
 ) {
     this.fileInput = fileInput;
     this.name = fileInput.getAttribute('name');
-
-    this.uploadUrl = uploadUrl;
-
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
     this.beforeUploadCallback = beforeUploadCallback;
@@ -69,13 +65,16 @@ IframeTransport.prototype = {
         this.xhr.send(null);
     },
 
-    send: function() {
+    /**
+     * @param {string} uploadUrl
+     */
+    send: function(uploadUrl) {
         if (this.beforeUploadCallback.call(this) === false) {
             return;
         }
 
         // check if progress id already in uploadUrl
-        var uploadUrl = helper.appendQueryParams(this.uploadUrl, {
+        uploadUrl = helper.appendQueryParams(uploadUrl, {
             'X-Progress-ID': this.uuid
         });
 

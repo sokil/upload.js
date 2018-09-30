@@ -14,10 +14,9 @@
   }
 }(this, function () {
 
-var IframeTransport = function(fileInput, uploadUrl, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+var IframeTransport = function(fileInput, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
     this.fileInput = fileInput;
     this.name = fileInput.getAttribute("name");
-    this.uploadUrl = uploadUrl;
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
     this.beforeUploadCallback = beforeUploadCallback;
@@ -53,11 +52,11 @@ IframeTransport.prototype = {
         };
         this.xhr.send(null);
     },
-    send: function() {
+    send: function(uploadUrl) {
         if (this.beforeUploadCallback.call(this) === false) {
             return;
         }
-        var uploadUrl = helper.appendQueryParams(this.uploadUrl, {
+        uploadUrl = helper.appendQueryParams(uploadUrl, {
             "X-Progress-ID": this.uuid
         });
         var iframe = document.createElement("iframe");
@@ -97,10 +96,9 @@ IframeTransport.prototype = {
     }
 };
 
-var XhrTransport = function(fileInput, uploadUrl, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
+var XhrTransport = function(fileInput, withCredentials, beforeUploadCallback, progressCallback, successCallback, errorCallback, afterUploadCallback) {
     this.fileInput = fileInput;
     this.name = fileInput.getAttribute("name");
-    this.uploadUrl = uploadUrl;
     this.withCredentials = withCredentials;
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
@@ -138,15 +136,15 @@ XhrTransport.prototype = {
         }
         return xhr;
     },
-    send: function() {
-        var xhr = [], file;
+    send: function(uploadUrl) {
+        var xhr = [];
         var files = this.fileInput.files;
         for (var i = 0; i < files.length; i++) {
             if (this.beforeUploadCallback.call(this) === false) {
                 break;
             }
             xhr[i] = this.createXhr();
-            xhr[i].open("POST", this.uploadUrl, true);
+            xhr[i].open("POST", uploadUrl, true);
             xhr[i].setRequestHeader("X-Requested-With", "XMLHttpRequest");
             var formData = new FormData();
             formData.append(this.name, files[i]);
@@ -195,7 +193,6 @@ function Upload(element, options) {
     if (element.tagName !== "INPUT" || element.type !== "file") {
         throw Error("Upload must be applied to input of file type");
     }
-    this.container = element.parentNode;
     this.options = helper.extend({}, {
         onchoose: function() {},
         oninvalidfile: function(code) {},
@@ -225,10 +222,9 @@ function Upload(element, options) {
     if (!this.options.uploadUrl) {
         throw Error("Upload URL not specified");
     }
-    if ("function" === typeof this.options.uploadUrl) {
-        this.options.uploadUrl = this.options.uploadUrl();
+    if (!element.getAttribute("name")) {
+        element.setAttribute("name", this.options.name);
     }
-    element.setAttribute("name", this.options.name);
     this.setTransport(this.options.transport);
     if (this.options.multiple && this.transport instanceof XhrTransport) {
         element.setAttribute("multiple", "multiple");
@@ -248,7 +244,7 @@ Upload.prototype = {
         } else {
             Transport = IframeTransport;
         }
-        this.transport = new Transport(this.fileInput, this.options.uploadUrl, this.options.withCredentials, this.options.onbeforeupload, this.options.onprogress, this.options.onsuccess, this.options.onerror, this.options.onafterupload);
+        this.transport = new Transport(this.fileInput, this.options.withCredentials, this.options.onbeforeupload, this.options.onprogress, this.options.onsuccess, this.options.onerror, this.options.onafterupload);
         if (this.options.progressUrl && transportName === "iframe") {
             this.transport.setProgressUrl(this.options.progressUrl);
         }
@@ -280,7 +276,13 @@ Upload.prototype = {
             this.options.oninvalidfile.call(this, code);
             return;
         }
-        this.transport.send();
+        var uploadUrl;
+        if ("function" === typeof this.options.uploadUrl) {
+            uploadUrl = this.options.uploadUrl();
+        } else {
+            uploadUrl = this.options.uploadUrl;
+        }
+        this.transport.send(uploadUrl);
         return this;
     }
 };
