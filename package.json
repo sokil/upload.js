@@ -14,10 +14,10 @@
     },
     "homepage": "https://github.com/sokil/upload.js",
     "keywords": [
-      "upload"
+        "upload"
     ],
     "repository": {
-      "type": "git",
-      "url": "git://github.com/sokil/upload.js.git"
+        "type": "git",
+        "url": "git://github.com/sokil/upload.js.git"
     }
 }

@@ -161,7 +161,7 @@ Upload.prototype = {
         var uploadUrl;
 
         if ('function' === typeof this.options.uploadUrl) {
-            uploadUrl = this.options.uploadUrl();
+            uploadUrl = this.options.uploadUrl.call(this);
         } else {
             uploadUrl = this.options.uploadUrl;
         }
