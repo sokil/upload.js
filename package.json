@@ -1,6 +1,6 @@
 {
     "name": "upload.js",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "upload.js",
     "main": "dist/upload.js",
     "author": "Dmytro Sokil <dmytro.sokil@gmail.com>",
