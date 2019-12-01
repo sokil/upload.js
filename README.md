@@ -114,8 +114,8 @@ Library has no styles. But you can do your own:
 
 ```html
 <a id="newAttachment" class="btn-upload btn btn-success btn-xs pull-right">
-    <input type="file" id="attachmentButton" name="file">
-    <label for="attachmentButton">
+    <input type="file" id="fileInput" name="file">
+    <label for="fileInput">
         <span class="glyphicon glyphicon-upload"></span>&nbsp;Додати файл
     </label>
 </a>
