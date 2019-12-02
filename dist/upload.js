@@ -289,15 +289,23 @@ Upload.prototype = {
 
 if (typeof jQuery !== "undefined") {
     jQuery.fn.upload = function() {
-        var $element = this, element = $element.get(0);
+        var $elements = this;
+        var options;
         if (arguments.length && typeof arguments[0] === "object") {
-            $element.data("selfInstance", new Upload(element, arguments[0]));
+            options = arguments[0];
+            $elements.each(function() {
+                $(this).data("selfInstance", new Upload(this, options));
+            });
         } else {
-            var instance = $element.data("selfInstance");
-            if (!instance) {
-                throw new Error("Upload not initialised");
-            }
-            instance[arguments[0]].apply(instance, Array.prototype.slice.call(arguments, 1));
+            var command = arguments[0];
+            options = Array.prototype.slice.call(arguments, 1);
+            $elements.each(function() {
+                var instance = $(this).data("selfInstance");
+                if (!instance) {
+                    throw new Error("Upload not initialised");
+                }
+                instance[command].apply(instance, options);
+            });
         }
     };
 }
